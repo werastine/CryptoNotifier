@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package crypto;
+
+option go_package = "github.com/werastine/CryptoNotifier/pkg/pb";
+
+// Crypto service manages price rate streaming and alert notifications
+service Crypto {
+    // PushRates pushes price ticks from the ingestion layer
+    rpc PushRates (stream PriceTick) returns (PushSummary) {};
+
+    // WaitNotification sends request with target price from notification layer
+    // and listens for alert notifications
+    rpc WaitNotification (NotifyRequest) returns (stream PriceTick) {};
+}
+
+message PushSummary {
+    int32 count = 1;
+}
+
+message PriceTick {
+    string symbol = 1;
+    double price = 2;
+}
+
+message NotifyRequest {
+    string symbol = 1;
+    double target_price = 2;
+
+}
