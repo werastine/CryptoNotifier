@@ -26,8 +26,13 @@ const (
 // CryptoClient is the client API for Crypto service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Crypto service manages price rate streaming and alert notifications
 type CryptoClient interface {
+	// PushRates pushes price ticks from the ingestion layer
 	PushRates(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[PriceTick, PushSummary], error)
+	// WaitNotification sends request with target price from notification layer
+	// and listens for alert notifications
 	WaitNotification(ctx context.Context, in *NotifyRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PriceTick], error)
 }
 
@@ -74,8 +79,13 @@ type Crypto_WaitNotificationClient = grpc.ServerStreamingClient[PriceTick]
 // CryptoServer is the server API for Crypto service.
 // All implementations must embed UnimplementedCryptoServer
 // for forward compatibility.
+//
+// Crypto service manages price rate streaming and alert notifications
 type CryptoServer interface {
+	// PushRates pushes price ticks from the ingestion layer
 	PushRates(grpc.ClientStreamingServer[PriceTick, PushSummary]) error
+	// WaitNotification sends request with target price from notification layer
+	// and listens for alert notifications
 	WaitNotification(*NotifyRequest, grpc.ServerStreamingServer[PriceTick]) error
 	mustEmbedUnimplementedCryptoServer()
 }

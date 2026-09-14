@@ -14,6 +14,13 @@ service Crypto {
     rpc WaitNotification (NotifyRequest) returns (stream PriceTick) {};
 }
 
+enum Condition {
+  CONDITION_UNSPECIFIED = 0;
+  CONDITION_ABOVE = 1; // >= 0
+  CONDITION_BELOW = 2; // <= 0
+  
+}
+
 message PushSummary {
     int32 count = 1;
 }
@@ -26,5 +33,6 @@ message PriceTick {
 message NotifyRequest {
     string symbol = 1;
     double target_price = 2;
+    Condition condition = 3;
 
 }

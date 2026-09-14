@@ -21,6 +21,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Condition int32
+
+const (
+	Condition_CONDITION_UNSPECIFIED Condition = 0
+	Condition_CONDITION_ABOVE       Condition = 1 // >= 0
+	Condition_CONDITION_BELOW       Condition = 2 // <= 0
+)
+
+// Enum value maps for Condition.
+var (
+	Condition_name = map[int32]string{
+		0: "CONDITION_UNSPECIFIED",
+		1: "CONDITION_ABOVE",
+		2: "CONDITION_BELOW",
+	}
+	Condition_value = map[string]int32{
+		"CONDITION_UNSPECIFIED": 0,
+		"CONDITION_ABOVE":       1,
+		"CONDITION_BELOW":       2,
+	}
+)
+
+func (x Condition) Enum() *Condition {
+	p := new(Condition)
+	*p = x
+	return p
+}
+
+func (x Condition) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Condition) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_proto_crypto_proto_enumTypes[0].Descriptor()
+}
+
+func (Condition) Type() protoreflect.EnumType {
+	return &file_api_proto_crypto_proto_enumTypes[0]
+}
+
+func (x Condition) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Condition.Descriptor instead.
+func (Condition) EnumDescriptor() ([]byte, []int) {
+	return file_api_proto_crypto_proto_rawDescGZIP(), []int{0}
+}
+
 type PushSummary struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Count         int32                  `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
@@ -121,6 +170,7 @@ type NotifyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	TargetPrice   float64                `protobuf:"fixed64,2,opt,name=target_price,json=targetPrice,proto3" json:"target_price,omitempty"`
+	Condition     Condition              `protobuf:"varint,3,opt,name=condition,proto3,enum=crypto.Condition" json:"condition,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -169,6 +219,13 @@ func (x *NotifyRequest) GetTargetPrice() float64 {
 	return 0
 }
 
+func (x *NotifyRequest) GetCondition() Condition {
+	if x != nil {
+		return x.Condition
+	}
+	return Condition_CONDITION_UNSPECIFIED
+}
+
 var File_api_proto_crypto_proto protoreflect.FileDescriptor
 
 const file_api_proto_crypto_proto_rawDesc = "" +
@@ -178,10 +235,15 @@ const file_api_proto_crypto_proto_rawDesc = "" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\"9\n" +
 	"\tPriceTick\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x14\n" +
-	"\x05price\x18\x02 \x01(\x01R\x05price\"J\n" +
+	"\x05price\x18\x02 \x01(\x01R\x05price\"{\n" +
 	"\rNotifyRequest\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12!\n" +
-	"\ftarget_price\x18\x02 \x01(\x01R\vtargetPrice2\x83\x01\n" +
+	"\ftarget_price\x18\x02 \x01(\x01R\vtargetPrice\x12/\n" +
+	"\tcondition\x18\x03 \x01(\x0e2\x11.crypto.ConditionR\tcondition*P\n" +
+	"\tCondition\x12\x19\n" +
+	"\x15CONDITION_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fCONDITION_ABOVE\x10\x01\x12\x13\n" +
+	"\x0fCONDITION_BELOW\x10\x022\x83\x01\n" +
 	"\x06Crypto\x127\n" +
 	"\tPushRates\x12\x11.crypto.PriceTick\x1a\x13.crypto.PushSummary\"\x00(\x01\x12@\n" +
 	"\x10WaitNotification\x12\x15.crypto.NotifyRequest\x1a\x11.crypto.PriceTick\"\x000\x01B,Z*github.com/werastine/CryptoNotifier/pkg/pbb\x06proto3"
@@ -198,22 +260,25 @@ func file_api_proto_crypto_proto_rawDescGZIP() []byte {
 	return file_api_proto_crypto_proto_rawDescData
 }
 
+var file_api_proto_crypto_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_api_proto_crypto_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_api_proto_crypto_proto_goTypes = []any{
-	(*PushSummary)(nil),   // 0: crypto.PushSummary
-	(*PriceTick)(nil),     // 1: crypto.PriceTick
-	(*NotifyRequest)(nil), // 2: crypto.NotifyRequest
+	(Condition)(0),        // 0: crypto.Condition
+	(*PushSummary)(nil),   // 1: crypto.PushSummary
+	(*PriceTick)(nil),     // 2: crypto.PriceTick
+	(*NotifyRequest)(nil), // 3: crypto.NotifyRequest
 }
 var file_api_proto_crypto_proto_depIdxs = []int32{
-	1, // 0: crypto.Crypto.PushRates:input_type -> crypto.PriceTick
-	2, // 1: crypto.Crypto.WaitNotification:input_type -> crypto.NotifyRequest
-	0, // 2: crypto.Crypto.PushRates:output_type -> crypto.PushSummary
-	1, // 3: crypto.Crypto.WaitNotification:output_type -> crypto.PriceTick
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: crypto.NotifyRequest.condition:type_name -> crypto.Condition
+	2, // 1: crypto.Crypto.PushRates:input_type -> crypto.PriceTick
+	3, // 2: crypto.Crypto.WaitNotification:input_type -> crypto.NotifyRequest
+	1, // 3: crypto.Crypto.PushRates:output_type -> crypto.PushSummary
+	2, // 4: crypto.Crypto.WaitNotification:output_type -> crypto.PriceTick
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_crypto_proto_init() }
@@ -226,13 +291,14 @@ func file_api_proto_crypto_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_crypto_proto_rawDesc), len(file_api_proto_crypto_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_api_proto_crypto_proto_goTypes,
 		DependencyIndexes: file_api_proto_crypto_proto_depIdxs,
+		EnumInfos:         file_api_proto_crypto_proto_enumTypes,
 		MessageInfos:      file_api_proto_crypto_proto_msgTypes,
 	}.Build()
 	File_api_proto_crypto_proto = out.File
