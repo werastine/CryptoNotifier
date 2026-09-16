@@ -27,12 +27,12 @@ message PushSummary {
 
 message PriceTick {
     string symbol = 1;
-    double price = 2;
+    string price = 2;
 }
 
 message NotifyRequest {
     string symbol = 1;
-    double target_price = 2;
+    string target_price = 2;
     Condition condition = 3;
 
 }
