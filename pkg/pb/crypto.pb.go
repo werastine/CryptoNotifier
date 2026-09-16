@@ -117,7 +117,7 @@ func (x *PushSummary) GetCount() int32 {
 type PriceTick struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	Price         float64                `protobuf:"fixed64,2,opt,name=price,proto3" json:"price,omitempty"`
+	Price         string                 `protobuf:"bytes,2,opt,name=price,proto3" json:"price,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -159,17 +159,17 @@ func (x *PriceTick) GetSymbol() string {
 	return ""
 }
 
-func (x *PriceTick) GetPrice() float64 {
+func (x *PriceTick) GetPrice() string {
 	if x != nil {
 		return x.Price
 	}
-	return 0
+	return ""
 }
 
 type NotifyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	TargetPrice   float64                `protobuf:"fixed64,2,opt,name=target_price,json=targetPrice,proto3" json:"target_price,omitempty"`
+	TargetPrice   string                 `protobuf:"bytes,2,opt,name=target_price,json=targetPrice,proto3" json:"target_price,omitempty"`
 	Condition     Condition              `protobuf:"varint,3,opt,name=condition,proto3,enum=crypto.Condition" json:"condition,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -212,11 +212,11 @@ func (x *NotifyRequest) GetSymbol() string {
 	return ""
 }
 
-func (x *NotifyRequest) GetTargetPrice() float64 {
+func (x *NotifyRequest) GetTargetPrice() string {
 	if x != nil {
 		return x.TargetPrice
 	}
-	return 0
+	return ""
 }
 
 func (x *NotifyRequest) GetCondition() Condition {
@@ -235,10 +235,10 @@ const file_api_proto_crypto_proto_rawDesc = "" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\"9\n" +
 	"\tPriceTick\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x14\n" +
-	"\x05price\x18\x02 \x01(\x01R\x05price\"{\n" +
+	"\x05price\x18\x02 \x01(\tR\x05price\"{\n" +
 	"\rNotifyRequest\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12!\n" +
-	"\ftarget_price\x18\x02 \x01(\x01R\vtargetPrice\x12/\n" +
+	"\ftarget_price\x18\x02 \x01(\tR\vtargetPrice\x12/\n" +
 	"\tcondition\x18\x03 \x01(\x0e2\x11.crypto.ConditionR\tcondition*P\n" +
 	"\tCondition\x12\x19\n" +
 	"\x15CONDITION_UNSPECIFIED\x10\x00\x12\x13\n" +

@@ -8,3 +8,5 @@ proto:
 	protoc --go_out=pkg/pb --go_opt=module=$(MODULE)/pkg/pb \
 	       --go-grpc_out=pkg/pb --go-grpc_opt=module=$(MODULE)/pkg/pb \
 	       api/proto/crypto.proto
+clean:
+	rm -f pkg/pb/*.pb.go
