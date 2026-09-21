@@ -13,7 +13,7 @@ import (
 
 func main() {
 	conn, err := grpc.NewClient(
-		"localhost:50051",
+		"127.0.0.1:50051",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -26,8 +26,8 @@ func main() {
 		}
 	}()
 
-	// var sender service.Sender = adapter.NewGRPCNotifySender(conn)
-	var sender service.Sender = adapter.NewMockSender(conn) // mock sender
+	var sender service.Sender = adapter.NewGRPCNotifySender(conn) // real sender
+	// var sender service.Sender = adapter.NewMockSender(conn) // mock sender
 
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/subscribe", delivery.Subscribe(sender))
