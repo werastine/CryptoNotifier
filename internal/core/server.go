@@ -56,7 +56,7 @@ func (s *Server) WaitNotification(nq *pb.NotifyRequest, stream grpc.ServerStream
 	clientChan := make(chan *pb.PriceTick, 1)
 	uid := uuid.NewString()
 
-	if nq.GetCondition() != pb.Condition_CONDITION_UNSPECIFIED {
+	if nq.GetCondition() == pb.Condition_CONDITION_UNSPECIFIED {
 		return status.Error(codes.InvalidArgument, "condition is requied")
 	}
 
