@@ -13,7 +13,7 @@ func main() {
 	cs := core.NewCryptoService()
 	srv := core.NewServer(cs)
 
-	lis, err := net.Listen("tcp", ":50501")
+	lis, err := net.Listen("tcp", "127.0.0.1:50051")
 	if err != nil {
 		log.Printf("[ERROR] listening tcp: %v", err)
 		return
