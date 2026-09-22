@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
@@ -27,12 +27,12 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Printf("[ERROR] creating new client")
+		slog.Error("failed to create a client", "err", err)
 		return
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
-			log.Printf("[ERROR] closing grpc connection: %v", err)
+			slog.Error("failed to close grpc connection", "err", err)
 		}
 	}()
 
@@ -49,8 +49,8 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	log.Println("[INFO] Context is done")
+	slog.Info("context is done")
 	wg.Wait()
-	log.Println("[INFO] Ingestion server stopped gracefully")
+	slog.Info("ingestion server stopped gracefully")
 
 }

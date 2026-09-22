@@ -3,7 +3,7 @@ package exchange
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -26,16 +26,16 @@ func Connect(ctx context.Context, pbl service.Publisher) {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("[INFO] Stopping Binance WebSocket worker")
+			slog.InfoContext(ctx, "stopping Binance WebSocket worker")
 			return
 		default:
 
 			conn, _, err := websocket.DefaultDialer.DialContext(ctx, url, nil)
 			if err != nil {
-				log.Printf("[ERROR] connecting to binance wss: %v, reconnecting in 5 seconds", err)
+				slog.ErrorContext(ctx, "failed to connect to binance websocket, reconnecting in 5 seconds", "err", err)
 				select {
 				case <-ctx.Done():
-					log.Println("[INFO] Stopping reconnect during backoff")
+					slog.InfoContext(ctx, "stopping reconnect during backoff")
 					return
 				case <-time.After(5 * time.Second):
 				}
@@ -43,14 +43,14 @@ func Connect(ctx context.Context, pbl service.Publisher) {
 				continue
 			}
 
-			log.Println("[INFO] Created websocket connection")
+			slog.InfoContext(ctx, "created websocket connection")
 
 			readLoop(ctx, pbl, conn)
-			log.Println("[WARN] Websocket connection lost, reconnecting it...")
+			slog.WarnContext(ctx, "Websocket connection lost, reconnecting it...")
 
 			select {
 			case <-ctx.Done():
-				log.Println("[INFO] Stopping reconnect during backoff")
+				slog.InfoContext(ctx, "stopping reconnect during backoff")
 				return
 			case <-time.After(2 * time.Second):
 			}
@@ -61,7 +61,7 @@ func Connect(ctx context.Context, pbl service.Publisher) {
 func readLoop(ctx context.Context, pbl service.Publisher, conn *websocket.Conn) {
 	defer func() {
 		if err := conn.Close(); err != nil {
-			log.Printf("[ERROR] closing websocket connection: %v", err)
+			slog.ErrorContext(ctx, "failed to close websocket connection", "err", err)
 		}
 	}()
 
@@ -77,12 +77,20 @@ func readLoop(ctx context.Context, pbl service.Publisher, conn *websocket.Conn) 
 		default:
 			_, p, err := conn.ReadMessage()
 			if err != nil {
-				log.Printf("[ERROR] reading bytes from connection: %v", err)
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+					slog.InfoContext(ctx, "websocket connection is closed", "err", err)
+					return
+				}
+				slog.ErrorContext(ctx, "failed to read bytes from connection", "err", err)
 				return
 			}
+
 			var dt DataTick
 			if err := json.Unmarshal(p, &dt); err != nil {
-				log.Printf("[ERROR] unmarshaling json: %v", err)
+				slog.WarnContext(ctx, "failed too unmarshal json",
+					"err", err,
+					"raw_payload", string(p),
+				)
 				continue
 			}
 
@@ -94,7 +102,11 @@ func readLoop(ctx context.Context, pbl service.Publisher, conn *websocket.Conn) 
 				Symbol: dt.Data.Symbol,
 				Price:  dt.Data.Price,
 			}); err != nil {
-				log.Printf("[ERROR] failed to publish DataTick: %v", err)
+				slog.ErrorContext(ctx, "failed to publish price tick",
+					"symbol", dt.Data.Symbol,
+					"price", dt.Data.Price,
+					"err", err,
+				)
 				return
 			}
 		}
