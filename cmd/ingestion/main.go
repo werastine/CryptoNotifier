@@ -19,11 +19,16 @@ func main() {
 	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	coreAddr := os.Getenv("CORE_GRPC_ADDR")
+	if coreAddr == "" {
+		slog.Error("core addres enviroment variable is not provided")
+	}
+
 	ctx, cancel := context.WithCancel(signalCtx)
 	defer cancel()
 
 	conn, err := grpc.NewClient(
-		"127.0.0.1:50051",
+		coreAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
