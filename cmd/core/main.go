@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net"
+	"os"
 
 	"github.com/werastine/CryptoNotifier/internal/core"
 	"github.com/werastine/CryptoNotifier/pkg/pb"
@@ -12,8 +14,14 @@ import (
 func main() {
 	cs := core.NewCryptoService()
 	srv := core.NewServer(cs)
+	port := os.Getenv("PORT")
 
-	lis, err := net.Listen("tcp", "127.0.0.1:50051")
+	if port == "" {
+		slog.Error("port enviroment variable is not provided")
+		return
+	}
+
+	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Printf("[ERROR] listening tcp: %v", err)
 		return
