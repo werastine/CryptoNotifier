@@ -1,0 +1,6 @@
+.git
+.gitignore
+.golangci.yml
+Tester
+README.md
+Dockerfile
