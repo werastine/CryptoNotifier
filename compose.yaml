@@ -1,0 +1,25 @@
+services:
+  core:
+    build:
+      context: .
+      dockerfile: ./cmd/core/Dockerfile
+    expose:
+      - "50051"
+    environment:
+      - PORT=:50051
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: cmd/ingestion/Dockerfile
+    environment:
+      - CORE_GRPC_ADDR=core:50051
+
+  notifier:
+    build:
+      context: .
+      dockerfile: cmd/notifier/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - CORE_GRPC_ADDR=core:50051
