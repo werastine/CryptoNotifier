@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/werastine/CryptoNotifier/internal/notifier/adapter"
 	"github.com/werastine/CryptoNotifier/internal/notifier/delivery"
@@ -12,8 +14,13 @@ import (
 )
 
 func main() {
+	coreAddr := os.Getenv("CORE_GRPC_ADDR")
+	if coreAddr == "" {
+		slog.Error("core addres environment variable is not provided")
+	}
+
 	conn, err := grpc.NewClient(
-		"127.0.0.1:50051",
+		coreAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
