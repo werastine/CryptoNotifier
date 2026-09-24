@@ -15,6 +15,10 @@ import (
 func main() {
 	certFile := os.Getenv("CERT_FILE")
 	keyFile := os.Getenv("KEY_FILE")
+	if certFile == "" || keyFile == "" {
+		slog.Error("TLS cerificates environment variables are not provided")
+		return
+	}
 
 	cs := core.NewCryptoService()
 	srv := core.NewServer(cs)
