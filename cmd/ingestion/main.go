@@ -11,10 +11,12 @@ import (
 	"github.com/werastine/CryptoNotifier/internal/ingestion/adapter"
 	"github.com/werastine/CryptoNotifier/internal/ingestion/adapter/exchange"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
+	sertFile := os.Getenv("CERT_FILE")
+
 	wg := sync.WaitGroup{}
 	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -27,9 +29,15 @@ func main() {
 	ctx, cancel := context.WithCancel(signalCtx)
 	defer cancel()
 
+	creds, err := credentials.NewClientTLSFromFile(sertFile, "")
+	if err != nil {
+		slog.Error("failed to set tls certification")
+		return
+	}
+
 	conn, err := grpc.NewClient(
 		coreAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(creds),
 	)
 	if err != nil {
 		slog.Error("failed to create a client", "err", err)
