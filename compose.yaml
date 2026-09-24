@@ -5,21 +5,33 @@ services:
       dockerfile: ./cmd/core/Dockerfile
     expose:
       - "50051"
+    volumes:
+      - ./.certs:/etc/tls/certs:ro
     environment:
       - PORT=:50051
+      - CERT_FILE=/etc/tls/certs/localhost+5.pem
+      - KEY_FILE=/etc/tls/certs/localhost+5-key.pem
 
   ingestion:
     build:
       context: .
-      dockerfile: cmd/ingestion/Dockerfile
+      dockerfile: ./cmd/ingestion/Dockerfile
+    volumes:
+      - ./.certs:/etc/tls/certs:ro
     environment:
       - CORE_GRPC_ADDR=core:50051
+      - CERT_FILE=/etc/tls/certs/localhost+5.pem
+      - KEY_FILE=/etc/tls/certs/localhost+5-key.pem
 
   notifier:
     build:
       context: .
-      dockerfile: cmd/notifier/Dockerfile
+      dockerfile: ./cmd/notifier/Dockerfile
     ports:
       - "8081:8081"
+    volumes:
+      - ./.certs:/etc/tls/certs:ro
     environment:
       - CORE_GRPC_ADDR=core:50051
+      - CERT_FILE=/etc/tls/certs/localhost+5.pem
+      - KEY_FILE=/etc/tls/certs/localhost+5-key.pem
