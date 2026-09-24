@@ -10,18 +10,32 @@ import (
 	"github.com/werastine/CryptoNotifier/internal/notifier/delivery"
 	"github.com/werastine/CryptoNotifier/internal/notifier/service"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
+	certFile := os.Getenv("CERT_FILE")
+	keyFile := os.Getenv("KEY_FILE")
+	if certFile == "" || keyFile == "" {
+		slog.Error("TLS cerificates environment variables are not provided")
+		return
+	}
+
 	coreAddr := os.Getenv("CORE_GRPC_ADDR")
 	if coreAddr == "" {
 		slog.Error("core addres environment variable is not provided")
+		return
+	}
+
+	creds, err := credentials.NewClientTLSFromFile(certFile, "")
+	if err != nil {
+		slog.Error("failed to set tls certification")
+		return
 	}
 
 	conn, err := grpc.NewClient(
 		coreAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(creds),
 	)
 	if err != nil {
 		log.Fatalf("[ERROR] did not connect: %v", err)
@@ -29,7 +43,7 @@ func main() {
 
 	defer func() {
 		if err = conn.Close(); err != nil {
-			log.Panicf("[ERROR] did not closed: %v", err)
+			log.Printf("[ERROR] did not closed: %v", err)
 		}
 	}()
 
@@ -41,7 +55,7 @@ func main() {
 
 	log.Println("[INFO] Listening port 8081")
 
-	if err = http.ListenAndServe(":8081", mux); err != nil {
+	if err = http.ListenAndServeTLS(":8081", certFile, keyFile, mux); err != nil {
 		log.Printf("[ERROR] listening interrupted: %v", err)
 		return
 	}
