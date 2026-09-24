@@ -9,9 +9,13 @@ import (
 	"github.com/werastine/CryptoNotifier/internal/core"
 	"github.com/werastine/CryptoNotifier/pkg/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
+	certFile := os.Getenv("CERT_FILE")
+	keyFile := os.Getenv("KEY_FILE")
+
 	cs := core.NewCryptoService()
 	srv := core.NewServer(cs)
 	port := os.Getenv("PORT")
@@ -33,7 +37,15 @@ func main() {
 		}
 	}()
 
-	grpcServer := grpc.NewServer()
+	creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
+	if err != nil {
+		slog.Error("failed to set tls certification")
+		return
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc.Creds(creds),
+	)
 
 	pb.RegisterCryptoServer(grpcServer, srv)
 
