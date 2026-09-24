@@ -15,7 +15,11 @@ import (
 )
 
 func main() {
-	sertFile := os.Getenv("CERT_FILE")
+	certFile := os.Getenv("CERT_FILE")
+	if certFile == "" {
+		slog.Error("TLS cerificate environment variable is not provided")
+		return
+	}
 
 	wg := sync.WaitGroup{}
 	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -29,7 +33,7 @@ func main() {
 	ctx, cancel := context.WithCancel(signalCtx)
 	defer cancel()
 
-	creds, err := credentials.NewClientTLSFromFile(sertFile, "")
+	creds, err := credentials.NewClientTLSFromFile(certFile, "")
 	if err != nil {
 		slog.Error("failed to set tls certification")
 		return
