@@ -3,10 +3,12 @@ package exchange
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 	"github.com/werastine/CryptoNotifier/internal/ingestion/service"
 	"github.com/werastine/CryptoNotifier/pkg/pb"
 )
@@ -20,7 +22,7 @@ type DataTick struct {
 	} `json:"data"`
 }
 
-func Connect(ctx context.Context, pbl service.Publisher) {
+func Connect(ctx context.Context, rdb *redis.Client, pbl service.Publisher) {
 	url := "wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/ethusdt@ticker/solusdt@ticker"
 
 	for {
@@ -45,7 +47,7 @@ func Connect(ctx context.Context, pbl service.Publisher) {
 
 			slog.InfoContext(ctx, "created websocket connection")
 
-			readLoop(ctx, pbl, conn)
+			readLoop(ctx, rdb, pbl, conn)
 			slog.WarnContext(ctx, "Websocket connection lost, reconnecting it...")
 
 			select {
@@ -58,7 +60,7 @@ func Connect(ctx context.Context, pbl service.Publisher) {
 	}
 }
 
-func readLoop(ctx context.Context, pbl service.Publisher, conn *websocket.Conn) {
+func readLoop(ctx context.Context, rdb *redis.Client, pbl service.Publisher, conn *websocket.Conn) {
 	defer func() {
 		if err := conn.Close(); err != nil {
 			slog.ErrorContext(ctx, "failed to close websocket connection", "err", err)
@@ -94,6 +96,10 @@ func readLoop(ctx context.Context, pbl service.Publisher, conn *websocket.Conn) 
 				continue
 			}
 
+			if err := redisSet(ctx, rdb, dt.Data.Symbol); err != nil {
+				slog.Error("failed to set symbol in redis DB", "err", err)
+			}
+
 			if dt.Data.Symbol == "" {
 				continue
 			}
@@ -111,4 +117,11 @@ func readLoop(ctx context.Context, pbl service.Publisher, conn *websocket.Conn) 
 			}
 		}
 	}
+}
+
+func redisSet(ctx context.Context, rdb *redis.Client, symbol string) error {
+	if err := rdb.SAdd(ctx, "Active_Symbol", symbol).Err(); err != nil {
+		return fmt.Errorf("failed to add new symbol: %s in redis DB: %w", symbol, err)
+	}
+	return nil
 }
