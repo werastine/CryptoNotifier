@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/werastine/CryptoNotifier/internal/notifier/adapter"
 	"github.com/werastine/CryptoNotifier/internal/notifier/delivery"
 	"github.com/werastine/CryptoNotifier/internal/notifier/service"
@@ -33,6 +35,23 @@ func main() {
 		return
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Redis client
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	defer func() {
+		if err := rdb.Close(); err != nil {
+			slog.ErrorContext(ctx, "failed to close redis data base", "err", err)
+		}
+	}()
+
+	// GRPC client
 	conn, err := grpc.NewClient(
 		coreAddr,
 		grpc.WithTransportCredentials(creds),
@@ -51,7 +70,7 @@ func main() {
 	// var sender service.Sender = adapter.NewMockSender(conn) // mock sender
 
 	mux := &http.ServeMux{}
-	mux.HandleFunc("/subscribe", delivery.Subscribe(sender))
+	mux.HandleFunc("/subscribe", delivery.Subscribe(ctx, sender, rdb))
 
 	log.Println("[INFO] Listening port 8081")
 

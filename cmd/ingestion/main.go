@@ -8,6 +8,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/werastine/CryptoNotifier/internal/ingestion/adapter"
 	"github.com/werastine/CryptoNotifier/internal/ingestion/adapter/exchange"
 	"google.golang.org/grpc"
@@ -39,6 +40,17 @@ func main() {
 		return
 	}
 
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "",
+		DB:       0,
+	})
+	defer func() {
+		if err := rdb.Close(); err != nil {
+			slog.ErrorContext(ctx, "failed to close redis data base", "err", err)
+		}
+	}()
+
 	conn, err := grpc.NewClient(
 		coreAddr,
 		grpc.WithTransportCredentials(creds),
@@ -62,7 +74,7 @@ func main() {
 		defer cancel()
 		defer wg.Done()
 
-		exchange.Connect(ctx, ts)
+		exchange.Connect(ctx, rdb, ts)
 	}()
 
 	<-ctx.Done()

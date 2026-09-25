@@ -35,3 +35,11 @@ services:
       - CORE_GRPC_ADDR=core:50051
       - CERT_FILE=/etc/tls/certs/localhost+5.pem
       - KEY_FILE=/etc/tls/certs/localhost+5-key.pem
+
+  redis:
+    image: redis:alpine
+    container_name: my_redis
+    ports:
+      - 6379:6379
+    expose:
+      - 6379
