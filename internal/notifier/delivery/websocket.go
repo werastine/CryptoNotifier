@@ -1,13 +1,16 @@
 package delivery
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 	"github.com/werastine/CryptoNotifier/internal/notifier/service"
 	"github.com/werastine/CryptoNotifier/pkg/pb"
 )
@@ -24,7 +27,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-func Subscribe(client service.Sender) http.HandlerFunc {
+func Subscribe(ctx context.Context, client service.Sender, rdb *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		mtx := sync.Mutex{}
 		reqCtx := r.Context()
@@ -64,6 +67,15 @@ func Subscribe(client service.Sender) http.HandlerFunc {
 				writeSafe(websocket.TextMessage, []byte("incorrect data type"))
 				continue
 			}
+
+			isMember, err := rdb.SIsMember(ctx, "Active_Symbol", tg.Symbol).Result()
+			if err != nil {
+				slog.Error("failed to check symbol in redis", "err", err)
+			}
+			if !isMember {
+				writeSafe(websocket.TextMessage, []byte("Incorrect symbol\ne.g. BTCUSDT, ETHUSDT"))
+			}
+
 			notifyTransfer, err := client.Send(reqCtx, tg.Symbol, tg.Price, tg.Condition)
 			if err != nil {
 				log.Printf("[ERROR] sending requsest to core layer: %v", err)
